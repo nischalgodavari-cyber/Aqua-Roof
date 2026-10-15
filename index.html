@@ -1,0 +1,2007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aqua Roof — Geospacial Rain Analytics</title>
+
+  <!-- Primary Leaflet CSS via Cloudflare CDN -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+    crossorigin="anonymous"
+  />
+  <!-- Backup Leaflet CSS via jsDelivr CDN -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css"
+  />
+
+  <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-main: #f4f7fb;
+      --bg-card: #ffffff;
+      --bg-subtle: #eef4ff;
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --teal: #0d9488;
+      --teal-light: #ccfbf1;
+      --amber: #d97706;
+      --amber-light: #fef3c7;
+      --danger: #dc2626;
+      --danger-light: #fee2e2;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --border: #cbd5e1;
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+      --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      line-height: 1.5;
+      padding-bottom: 3rem;
+    }
+
+    /* Top Navigation Bar */
+    header {
+      background: linear-gradient(135deg, #0f172a 0%, #0369a1 100%);
+      color: #ffffff;
+      padding: 1.25rem 1.5rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    .header-container {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.45rem;
+    }
+
+    .brand h1 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .brand p {
+      font-size: 0.82rem;
+      color: #bae6fd;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.55rem 0.95rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: #ffffff;
+    }
+    .btn-primary:hover:not(:disabled) {
+      background-color: var(--primary-dark);
+    }
+
+    .btn-teal {
+      background-color: var(--teal);
+      color: #ffffff;
+    }
+    .btn-teal:hover:not(:disabled) {
+      background-color: #0f766e;
+    }
+
+    .btn-outline-light {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+    .btn-outline-light:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-secondary {
+      background-color: #f1f5f9;
+      color: var(--text-main);
+      border-color: var(--border);
+    }
+    .btn-secondary:hover:not(:disabled) {
+      background-color: #e2e8f0;
+    }
+
+    .btn-danger-soft {
+      background-color: var(--danger-light);
+      color: var(--danger);
+      border-color: #fecaca;
+    }
+    .btn-danger-soft:hover {
+      background-color: #fecaca;
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1320px;
+      margin: 1.5rem auto 0;
+      padding: 0 1.25rem;
+    }
+
+    /* Formula Info Strip */
+    .formula-banner {
+      background: var(--bg-card);
+      border-left: 4px solid var(--primary);
+      border-radius: var(--radius);
+      padding: 0.9rem 1.25rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.875rem;
+    }
+
+    .formula-code {
+      background: var(--bg-subtle);
+      color: var(--primary-dark);
+      padding: 0.35rem 0.7rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-family: monospace;
+      font-size: 0.85rem;
+    }
+
+    /* Two-Column Main Grid */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1.08fr 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    @media (max-width: 992px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid #e2e8f0;
+      padding: 1.35rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #f1f5f9;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .card-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.22rem 0.6rem;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .badge-blue {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+    }
+
+    .badge-teal {
+      background: var(--teal-light);
+      color: var(--teal);
+    }
+
+    /* Search & Coordinate Input Bars */
+    .map-search-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .map-search-bar input {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.55rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.875rem;
+    }
+
+    .coord-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      background: #f8fafc;
+      padding: 0.6rem;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      align-items: center;
+    }
+
+    @media (max-width: 600px) {
+      .coord-bar {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .coord-input-wrap {
+      display: flex;
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      overflow: hidden;
+    }
+
+    .coord-tag {
+      background: #f1f5f9;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.45rem 0.6rem;
+      border-right: 1px solid var(--border);
+      user-select: none;
+    }
+
+    .coord-input-wrap input {
+      border: none !important;
+      padding: 0.45rem 0.6rem !important;
+      font-size: 0.84rem !important;
+      width: 100%;
+      box-shadow: none !important;
+    }
+
+    /* Bulletproof Map Wrapper & Container */
+    .map-wrapper {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      min-height: 380px;
+      border-radius: 10px;
+      border: 2px solid var(--border);
+      overflow: hidden;
+      background: #0f172a;
+    }
+
+    #roofMap {
+      width: 100%;
+      height: 100%;
+      min-height: 376px;
+      z-index: 1;
+      background: #1e293b;
+    }
+
+    .leaflet-container {
+      width: 100% !important;
+      height: 100% !important;
+      font-family: inherit;
+    }
+
+    /* Draggable Numbered Corner Handle Styling */
+    .roof-corner-icon {
+      background: transparent;
+      border: none;
+    }
+
+    .roof-corner-badge {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #0284c7;
+      border: 2.5px solid #ffffff;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.45);
+      cursor: grab;
+      user-select: none;
+      transition: transform 0.1s ease, background-color 0.1s ease;
+    }
+
+    .roof-corner-badge:hover {
+      transform: scale(1.18);
+      background: #0d9488;
+    }
+
+    .roof-corner-badge:active {
+      cursor: grabbing;
+      transform: scale(1.25);
+      background: #f59e0b;
+    }
+
+    .map-layer-pills {
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: 0.6rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .layer-btn {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.32rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .layer-btn:hover {
+      background: #f1f5f9;
+    }
+
+    .layer-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .map-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+      padding: 0.65rem 0.85rem;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      font-size: 0.82rem;
+    }
+
+    .map-status {
+      font-weight: 600;
+      color: var(--primary-dark);
+    }
+
+    /* Form Controls */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 600px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .label-hint {
+      font-weight: 400;
+      color: var(--text-muted);
+      font-size: 0.76rem;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      background: #ffffff;
+      color: var(--text-main);
+      transition: border-color 0.15s ease;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+
+    .unit-toggle-group {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .preset-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 0.35rem;
+    }
+
+    .pill-btn {
+      font-size: 0.75rem;
+      padding: 0.28rem 0.65rem;
+      border-radius: 999px;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .pill-btn:hover {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      border-color: #7dd3fc;
+    }
+
+    /* Status & Alert Banner */
+    #statusMessage {
+      display: none;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 1.1rem;
+    }
+
+    .status-info {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      border: 1px solid #bae6fd;
+    }
+
+    .status-error {
+      background: var(--danger-light);
+      color: var(--danger);
+      border: 1px solid #fecaca;
+    }
+
+    /* Right Column: KPI Metric Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    @media (max-width: 540px) {
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .kpi-card {
+      padding: 1.1rem;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card.highlight {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff;
+      border: none;
+    }
+
+    .kpi-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      opacity: 0.85;
+      margin-bottom: 0.3rem;
+    }
+
+    .kpi-value {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.65rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .kpi-sub {
+      font-size: 0.78rem;
+      margin-top: 0.35rem;
+      opacity: 0.9;
+    }
+
+    /* Water Balance Breakdown Progress */
+    .balance-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .balance-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.84rem;
+      padding: 0.35rem 0;
+      border-bottom: 1px dashed #e2e8f0;
+    }
+
+    .balance-row:last-child {
+      border-bottom: none;
+      font-weight: 700;
+      color: var(--primary-dark);
+      padding-top: 0.6rem;
+      font-size: 0.92rem;
+    }
+
+    /* Simplified Recharge Setup Recommendation Box */
+    .setup-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 1.25rem;
+      align-items: stretch;
+    }
+
+    @media (max-width: 768px) {
+      .setup-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .setup-specs {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .spec-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      background: #f8fafc;
+      padding: 0.9rem;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid var(--primary);
+    }
+
+    .spec-icon {
+      font-size: 1.35rem;
+      line-height: 1;
+      margin-top: 0.1rem;
+    }
+
+    .spec-item h4 {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 0.25rem;
+    }
+
+    .spec-item p {
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .spec-highlight {
+      display: inline-block;
+      margin-top: 0.3rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      background: var(--primary-light);
+      padding: 0.18rem 0.55rem;
+      border-radius: 6px;
+    }
+
+    /* Visual Filter Layer Cross-Section Diagram (Kept Intact) */
+    .pit-diagram {
+      border: 2px solid #94a3b8;
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 255px;
+      background: #ffffff;
+    }
+
+    .pit-layer {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 0.5rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-bottom: 1px dashed rgba(15, 23, 42, 0.2);
+    }
+
+    .layer-inlet {
+      background: #e0f2fe;
+      color: #0369a1;
+      flex: 0.8;
+    }
+    .layer-sand {
+      background: #fef3c7;
+      color: #92400e;
+      flex: 1;
+    }
+    .layer-gravel {
+      background: #e2e8f0;
+      color: #334155;
+      flex: 1.1;
+    }
+    .layer-boulders {
+      background: #cbd5e1;
+      color: #1e293b;
+      flex: 1.3;
+      border-bottom: none;
+    }
+
+    /* Monthly Bar Chart */
+    .chart-container {
+      margin-top: 1rem;
+      padding-top: 0.5rem;
+    }
+
+    .bar-chart {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 0.4rem;
+      height: 155px;
+      align-items: end;
+      padding: 1rem 0.25rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .bar-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      justify-content: flex-end;
+    }
+
+    .bar-val {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-bottom: 0.2rem;
+      font-weight: 600;
+    }
+
+    .bar-fill {
+      width: 100%;
+      max-width: 28px;
+      background: linear-gradient(180deg, #0284c7 0%, #0d9488 100%);
+      border-radius: 4px 4px 0 0;
+      transition: height 0.3s ease;
+      min-height: 3px;
+    }
+
+    .bar-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 0.4rem;
+      text-align: center;
+    }
+
+    .disclaimer-box {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-top: 1rem;
+    }
+
+    @media print {
+      header .header-actions,
+      .map-search-bar,
+      .coord-bar,
+      .map-layer-pills,
+      .map-toolbar,
+      .preset-pills {
+        display: none !important;
+      }
+      body {
+        background: #ffffff;
+      }
+      .card {
+        box-shadow: none;
+        border: 1px solid #cbd5e1;
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Header -->
+  <header>
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">🛰️</div>
+        <div>
+          <h1>Aqua Roof — Geospacial Rain Analytics</h1>
+          <p>Precision Satellite Roof Tracing, CGWB Harvest Estimator & Groundwater Recharge Planner</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn btn-outline-light" id="demoHouseBtn">🏠 House Sample</button>
+        <button type="button" class="btn btn-outline-light" id="demoCampusBtn">🏫 Hostel Roof Sample</button>
+        <button type="button" class="btn btn-primary" onclick="window.print()">🖨️ Print / Save PDF</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- CGWB Standard Formula Banner -->
+    <div class="formula-banner" role="region" aria-label="Calculation Methodology">
+      <div>
+        <strong>Scientific Methodology (Central Ground Water Board Manual):</strong>
+        Horizontal Roof Area × Rainfall × Runoff Coefficient − First-Flush Loss × Filter Efficiency
+      </div>
+      <span class="formula-code">1 m² × 1 mm Rainfall = 1 Liter of Water</span>
+    </div>
+
+    <div id="statusMessage" role="alert"></div>
+
+    <div class="main-grid">
+      <!-- LEFT COLUMN: SATELLITE MAP & INPUT PARAMETERS -->
+      <section aria-label="Roof Map and Input Parameters">
+
+        <!-- Interactive Map Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">🛰️ Step 1: Trace & Drag Your Roof Corners on Map</h2>
+            <span class="badge badge-blue" id="mapEngineBadge">Draggable Points Active</span>
+          </div>
+
+          <p style="font-size: 0.83rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+            Click <strong>3 or more corners</strong> on the map to trace your roof. <strong>Drag any numbered corner point (1, 2, 3...)</strong> at any time to adjust the shape and recalculate area live!
+          </p>
+
+          <!-- Search & GPS Bar -->
+          <div class="map-search-bar">
+            <input
+              type="text"
+              id="locationSearchInput"
+              placeholder="Search place or paste Lat, Lng (e.g., Tirupati, or 13.6288, 79.4192)..."
+              aria-label="Search location on satellite map"
+            />
+            <button type="button" class="btn btn-primary" id="searchMapBtn">🔍 Search</button>
+            <button type="button" class="btn btn-teal" id="gpsLocateBtn" title="Find my current location">📍 My GPS</button>
+          </div>
+
+          <!-- Direct Coordinate Input Feature -->
+          <div class="coord-bar" aria-label="Enter Exact Latitude and Longitude Coordinates">
+            <div class="coord-input-wrap">
+              <span class="coord-tag">LAT</span>
+              <input
+                type="text"
+                id="latInput"
+                value="13.6288"
+                placeholder="Latitude (e.g. 13.6288)"
+                aria-label="Latitude coordinate"
+              />
+            </div>
+            <div class="coord-input-wrap">
+              <span class="coord-tag">LNG</span>
+              <input
+                type="text"
+                id="lngInput"
+                value="79.4192"
+                placeholder="Longitude (e.g. 79.4192)"
+                aria-label="Longitude coordinate"
+              />
+            </div>
+            <button type="button" class="btn btn-secondary" id="goToCoordBtn" title="Jump map to these exact coordinates">
+              🎯 Go to Coordinates
+            </button>
+          </div>
+
+          <!-- Quick Map Layer Switcher Buttons -->
+          <div class="map-layer-pills">
+            <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted);">Map View:</span>
+            <button type="button" class="layer-btn active" id="btnLayerEsri">🛰️ Esri HD Satellite + Labels</button>
+            <button type="button" class="layer-btn" id="btnLayerGoogle">🌍 Google Hybrid Satellite</button>
+            <button type="button" class="layer-btn" id="btnLayerStreet">🗺️ Street Map</button>
+          </div>
+
+          <!-- Map Container -->
+          <div class="map-wrapper">
+            <div id="roofMap" aria-label="Interactive Satellite Roof Map"></div>
+          </div>
+
+          <!-- Map Polygon Controls -->
+          <div class="map-toolbar">
+            <div>
+              <span class="map-status" id="mapPolygonStatus">Drag any numbered corner (1, 2, 3...) or click map to add points.</span>
+            </div>
+            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+              <button type="button" class="btn btn-secondary" id="drawSampleRoofBtn" style="padding: 0.35rem 0.65rem; font-size: 0.78rem; color: var(--primary-dark); border-color: #7dd3fc; background: var(--primary-light);">
+                ✨ Draw Sample Roof
+              </button>
+              <button type="button" class="btn btn-secondary" id="undoPointBtn" style="padding: 0.35rem 0.65rem; font-size: 0.78rem;">↩ Undo</button>
+              <button type="button" class="btn btn-danger-soft" id="clearPolygonBtn" style="padding: 0.35rem 0.65rem; font-size: 0.78rem;">✖ Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Property & Climate Input Form Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">📐 Step 2: Property, Roof & Rainfall Details</h2>
+            <span class="badge badge-teal">Instant Recalculation</span>
+          </div>
+
+          <form id="rwhForm" onsubmit="return false;">
+            <div class="form-grid">
+
+              <!-- Roof Area Input -->
+              <div class="form-group">
+                <label for="roofAreaInput">
+                  <span>Horizontal Roof Area</span>
+                  <span class="label-hint" id="convertedAreaHint">≈ 1,496 sq. ft.</span>
+                </label>
+                <div class="unit-toggle-group">
+                  <input type="number" id="roofAreaInput" min="10" max="100000" step="1" value="139" required />
+                  <select id="areaUnitSelect" style="width: 115px;" aria-label="Roof area unit">
+                    <option value="sqm" selected>sq. m (m²)</option>
+                    <option value="sqft">sq. ft.</option>
+                  </select>
+                </div>
+                <div class="preset-pills">
+                  <button type="button" class="pill-btn" data-sqm="93">2BHK Home (93 m²)</button>
+                  <button type="button" class="pill-btn" data-sqm="185">Villa (185 m²)</button>
+                  <button type="button" class="pill-btn" data-sqm="650">Apartment (650 m²)</button>
+                </div>
+              </div>
+
+              <!-- Roof Surface Material (CGWB Coefficients) -->
+              <div class="form-group">
+                <label for="roofTypeSelect">
+                  <span>Roof Surface Material</span>
+                  <span class="label-hint">CGWB Runoff Factor</span>
+                </label>
+                <select id="roofTypeSelect">
+                  <option value="0.70" selected>Concrete / RCC Flat Roof (C = 0.70)</option>
+                  <option value="0.75">Tiled / Sloped Roof (C = 0.75)</option>
+                  <option value="0.90">Metal / GI Sheet Roof (C = 0.90)</option>
+                  <option value="0.60">Brick / Rough Terrace (C = 0.60)</option>
+                </select>
+                <span class="label-hint" style="margin-top: 0.25rem;">
+                  Accounts for roof absorption & evaporation.
+                </span>
+              </div>
+
+              <!-- City / Location Preset -->
+              <div class="form-group">
+                <label for="citySelect">
+                  <span>City / Climate Zone</span>
+                  <button type="button" id="fetchLiveRainBtn" style="background:none;border:none;color:var(--primary);font-size:0.75rem;font-weight:700;cursor:pointer;text-decoration:underline;">
+                    ☁️ Fetch Map Pin Rainfall
+                  </button>
+                </label>
+                <select id="citySelect">
+                  <option value="934" data-lat="13.6288" data-lng="79.4192" data-days="48" selected>Tirupati, AP (934 mm / yr)</option>
+                  <option value="1400" data-lat="13.0827" data-lng="80.2707" data-days="58">Chennai, TN (1,400 mm / yr)</option>
+                  <option value="970" data-lat="12.9716" data-lng="77.5946" data-days="56">Bengaluru, KA (970 mm / yr)</option>
+                  <option value="812" data-lat="17.3850" data-lng="78.4867" data-days="46">Hyderabad, TS (812 mm / yr)</option>
+                  <option value="1110" data-lat="17.6868" data-lng="83.2185" data-days="55">Visakhapatnam, AP (1,110 mm / yr)</option>
+                  <option value="2420" data-lat="19.0760" data-lng="72.8777" data-days="84">Mumbai, MH (2,420 mm / yr)</option>
+                  <option value="790" data-lat="28.6139" data-lng="77.2090" data-days="38">New Delhi, DL (790 mm / yr)</option>
+                  <option value="750" data-lat="18.5204" data-lng="73.8567" data-days="50">Pune, MH (750 mm / yr)</option>
+                  <option value="1640" data-lat="22.5726" data-lng="88.3639" data-days="78">Kolkata, WB (1,640 mm / yr)</option>
+                  <option value="3015" data-lat="9.9312" data-lng="76.2673" data-days="115">Kochi, KL (3,015 mm / yr)</option>
+                  <option value="560" data-lat="26.9124" data-lng="75.7873" data-days="30">Jaipur, RJ (560 mm / yr)</option>
+                  <option value="custom" data-lat="13.6288" data-lng="79.4192" data-days="45">Custom Coordinates / Rainfall...</option>
+                </select>
+              </div>
+
+              <!-- Annual Rainfall (mm) -->
+              <div class="form-group">
+                <label for="rainfallInput">
+                  <span>Annual Rainfall (mm)</span>
+                  <span class="label-hint" id="rainyDaysHint">~48 rainy days/yr</span>
+                </label>
+                <input type="number" id="rainfallInput" min="100" max="12000" step="10" value="934" required />
+              </div>
+
+              <!-- Soil Type for Groundwater Recharge -->
+              <div class="form-group">
+                <label for="soilTypeSelect">
+                  <span>Local Soil Type</span>
+                  <span class="label-hint">For pit sizing</span>
+                </label>
+                <select id="soilTypeSelect">
+                  <option value="sandy">Sandy Soil (Fast Soaking)</option>
+                  <option value="loamy" selected>Red / Loamy Soil (Medium Soaking)</option>
+                  <option value="clay">Clay / Hard Soil (Slow Soaking)</option>
+                </select>
+              </div>
+
+              <!-- Filter Efficiency -->
+              <div class="form-group">
+                <label for="filterEfficiencyInput">
+                  <span>Filter Efficiency (%)</span>
+                  <span class="label-hint">Standard: 90%</span>
+                </label>
+                <input type="number" id="filterEfficiencyInput" min="50" max="98" value="90" required />
+              </div>
+
+              <!-- Household Occupants -->
+              <div class="form-group">
+                <label for="occupantsInput">
+                  <span>Building Occupants (People)</span>
+                  <span class="label-hint">~80 L/day/person</span>
+                </label>
+                <input type="number" id="occupantsInput" min="1" max="2000" value="5" required />
+              </div>
+
+              <!-- Cost per 5,000L Water Tanker -->
+              <div class="form-group">
+                <label for="tankerCostInput">
+                  <span>5,000L Water Tanker Cost (₹)</span>
+                  <span class="label-hint">Local tanker rate</span>
+                </label>
+                <input type="number" id="tankerCostInput" min="200" max="5000" step="50" value="900" required />
+              </div>
+
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: LIVE WATER HARVEST RESULTS & RECHARGE SETUP -->
+      <section aria-label="Estimation Results and Engineering Setup">
+
+        <!-- Core Water Harvest Results Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">📊 Step 3: Annual Harvest Potential & Savings</h2>
+            <span class="badge badge-blue" id="activeRoofBadge">139 m² Roof</span>
+          </div>
+
+          <!-- 4 Key Metric Cards -->
+          <div class="kpi-grid">
+            <div class="kpi-card highlight">
+              <div class="kpi-label">Net Collectable Water</div>
+              <div class="kpi-value" id="netWaterOutput">77,315 L</div>
+              <div class="kpi-sub" id="netCubicMeters">77.3 Cubic Meters / Year</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-label">5,000L Water Tankers Saved</div>
+              <div class="kpi-value" id="tankersSavedOutput" style="color: var(--teal);">15.5 Tankers</div>
+              <div class="kpi-sub" id="annualMoneySavedOutput">Est. Savings: ₹13,950 / yr</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-label">Household Water Days Met</div>
+              <div class="kpi-value" id="daysSupportedOutput">193 Days</div>
+              <div class="kpi-sub" id="dailyDemandSub">At 400 L/day daily non-drinking use</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-label">Heavy Storm Water (50mm Day)</div>
+              <div class="kpi-value" id="peakStormOutput">4,379 L</div>
+              <div class="kpi-sub">Used to size your recharge pit safely</div>
+            </div>
+          </div>
+
+          <!-- Transparent CGWB Water Balance Table -->
+          <div class="balance-box">
+            <h3 style="font-size: 0.85rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-muted); text-transform: uppercase;">
+              Simple Water Calculation Breakdown
+            </h3>
+            <div class="balance-row">
+              <span>1. Total Rain Falling on Roof (Area × Rainfall)</span>
+              <strong id="grossRainVal">129,826 L</strong>
+            </div>
+            <div class="balance-row">
+              <span id="runoffLossLabel">2. Roof Absorption & Evaporation Loss (C = 0.70)</span>
+              <span style="color: var(--danger);" id="runoffLossVal">− 38,948 L</span>
+            </div>
+            <div class="balance-row">
+              <span>3. First-Rain Dirt Flush Loss (1.5 mm × rainy days)</span>
+              <span style="color: var(--amber);" id="firstFlushLossVal">− 4,993 L</span>
+            </div>
+            <div class="balance-row">
+              <span id="filterLossLabel">4. Filter Loss (10%)</span>
+              <span style="color: var(--amber);" id="filterLossVal">− 8,570 L</span>
+            </div>
+            <div class="balance-row">
+              <span>Net Clean Water Collected Per Year</span>
+              <span id="finalNetVal">77,315 L / year</span>
+            </div>
+          </div>
+
+          <!-- Monthly Harvest Distribution Chart -->
+          <div class="chart-container">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 style="font-size: 0.88rem; font-weight: 700;">Monthly Collectable Water (Liters)</h3>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Monsoon Peak: Jun–Nov</span>
+            </div>
+            <div class="bar-chart" id="monthlyChart"></div>
+          </div>
+        </div>
+
+        <!-- SIMPLIFIED Recommended Recharge Setup + KEPT Filter Blueprint -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">🛠️ Step 4: Simple Groundwater Recharge Setup</h2>
+            <span class="badge badge-teal" id="setupCategoryBadge">Medium Home Pit</span>
+          </div>
+
+          <div class="setup-grid">
+            <!-- SIMPLIFIED 3-STEP RECHARGE GUIDE -->
+            <div class="setup-specs">
+              <div class="spec-item">
+                <div class="spec-icon">📏</div>
+                <div>
+                  <h4 id="structureTitle">1. Pit Size to Dig in Your Yard</h4>
+                  <p id="structureDimensions">Dig a pit 1.5 m Long × 1.5 m Wide × 2.0 m Deep (approx. 5 ft × 5 ft × 6.5 ft).</p>
+                  <span class="spec-highlight" id="pitCapacityBadge">Holds ~4,500 Liters per heavy rain</span>
+                </div>
+              </div>
+
+              <div class="spec-item">
+                <div class="spec-icon">🔧</div>
+                <div>
+                  <h4>2. Simple Pipe & Filter Connection</h4>
+                  <p id="pipeFilterSpecs">
+                    Connect your roof drainpipe (4-inch PVC) through a leaf-mesh strainer straight into the top of the filter pit. Optional: Add a 2,000 L plastic tank for garden/cleaning water.
+                  </p>
+                </div>
+              </div>
+
+              <div class="spec-item">
+                <div class="spec-icon">💰</div>
+                <div>
+                  <h4 id="costRangeOutput">3. Estimated Cost: ₹18,000 – ₹24,000</h4>
+                  <p id="paybackOutput">
+                    Recovers its cost in ~1.5 Years of water tanker savings and keeps your home borewell recharged all summer.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Filter Bed Cross-Section Diagram (KEPT EXACTLY AS REQUESTED) -->
+            <div>
+              <div style="font-size: 0.78rem; font-weight: 700; text-align: center; margin-bottom: 0.4rem; color: var(--text-muted);">
+                CGWB RECHARGE PIT FILTER CROSS-SECTION
+              </div>
+              <div class="pit-diagram" aria-label="Cross section of recharge pit layers">
+                <div class="pit-layer layer-inlet">
+                  <span>⬇️ Rooftop Rainwater Inlet Pipe</span>
+                  <small style="font-weight: 400;">Freeboard / Settling Space (0.4 m depth)</small>
+                </div>
+                <div class="pit-layer layer-sand">
+                  <span>Layer 1: Coarse River Sand (0.3 m)</span>
+                  <small style="font-weight: 400;">Traps fine silt & organic dust (Top Nylon Mesh)</small>
+                </div>
+                <div class="pit-layer layer-gravel">
+                  <span>Layer 2: Crushed Gravel / Pebbles (0.4 m)</span>
+                  <small style="font-weight: 400;">Size: 5 mm to 20 mm graded aggregate</small>
+                </div>
+                <div class="pit-layer layer-boulders">
+                  <span>Layer 3: Large Boulders / Stones (0.8 m+)</span>
+                  <small style="font-weight: 400;">Size: 40–80 mm | Percolates into native aquifer</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="disclaimer-box">
+            <strong>Safety & Honesty Tip:</strong> Keep the recharge pit at least 1.5 meters (5 feet) away from your house foundation wall, and fill it with boulders at the bottom, gravel in the middle, and coarse sand on top as shown in the blueprint.
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+  <!-- Primary Leaflet JS via Cloudflare CDN -->
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
+    crossorigin="anonymous"
+  ></script>
+  <!-- Automatic Backup Loader if Cloudflare is blocked -->
+  <script>
+    if (typeof window.L === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"><\/script>');
+    }
+  </script>
+
+  <script>
+    /********************************************************************
+     * 1. GLOBAL STATE & MONTHLY RAINFALL WEIGHTS
+     ********************************************************************/
+    const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const MONTHLY_WEIGHTS = [0.01, 0.01, 0.02, 0.03, 0.06, 0.14, 0.20, 0.19, 0.15, 0.11, 0.06, 0.02];
+
+    let map = null;
+    let roofPoints = [];
+    let roofMarkers = [];
+    let roofPolygon = null;
+    let gpsMarker = null;
+    let currentRainyDays = 48;
+
+    // Map Layers
+    let esriHybridGroup = null;
+    let googleHybridLayer = null;
+    let streetLayerGroup = null;
+
+    /********************************************************************
+     * 2. INITIALIZE SATELLITE & STREET MAP (FIXED STREET MAP + FALLBACKS)
+     ********************************************************************/
+    function initMap() {
+      const mapContainer = document.getElementById('roofMap');
+
+      if (typeof window.L === 'undefined') {
+        initOfflineCanvasGrid(mapContainer);
+        return;
+      }
+
+      map = L.map('roofMap', {
+        center: [13.6288, 79.4192],
+        zoom: 18,
+        maxZoom: 21
+      });
+
+      // Layer 1: Esri World Imagery HD + Hybrid Place Labels
+      const esriSat = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        {
+          maxNativeZoom: 19,
+          maxZoom: 21,
+          attribution: 'Tiles &copy; Esri World Imagery'
+        }
+      );
+
+      const esriLabels = L.tileLayer(
+        'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+        {
+          maxNativeZoom: 19,
+          maxZoom: 21
+        }
+      );
+
+      esriHybridGroup = L.layerGroup([esriSat, esriLabels]);
+
+      // Layer 2: Google Satellite Hybrid
+      googleHybridLayer = L.tileLayer(
+        'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+        {
+          maxNativeZoom: 20,
+          maxZoom: 21,
+          attribution: 'Map data &copy; Google Satellite'
+        }
+      );
+
+      // Layer 3: FIXED Street Map (Esri World Street Map + OpenStreetMap + Google Roads Fallback)
+      const esriStreet = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+        {
+          maxNativeZoom: 19,
+          maxZoom: 21,
+          attribution: 'Tiles &copy; Esri Street Map'
+        }
+      );
+
+      const osmStreet = L.tileLayer(
+        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        {
+          maxNativeZoom: 19,
+          maxZoom: 21,
+          attribution: '&copy; OpenStreetMap contributors'
+        }
+      );
+
+      // If Esri Street has any tile issue on a local network, automatically load OSM Street
+      esriStreet.on('tileerror', function () {
+        if (map && !map.hasLayer(osmStreet)) {
+          osmStreet.addTo(map);
+        }
+      });
+
+      streetLayerGroup = L.layerGroup([esriStreet]);
+
+      // Start with Esri HD Satellite + Labels by default
+      esriHybridGroup.addTo(map);
+
+      // Force Leaflet to size properly and draw sample draggable roof
+      setTimeout(() => {
+        map.invalidateSize();
+        drawSampleRoofOnMap(true);
+      }, 250);
+
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 900);
+
+      window.addEventListener('resize', () => {
+        if (map) map.invalidateSize();
+      });
+
+      // Click on map to add a new draggable corner point
+      map.on('click', function (e) {
+        updateCoordinateInputs(e.latlng.lat, e.latlng.lng);
+        addRoofCorner(e.latlng);
+      });
+
+      map.on('moveend', function () {
+        const center = map.getCenter();
+        updateCoordinateInputs(center.lat, center.lng);
+      });
+    }
+
+    function switchMapLayer(mode) {
+      if (!map) return;
+      map.removeLayer(esriHybridGroup);
+      map.removeLayer(googleHybridLayer);
+      map.removeLayer(streetLayerGroup);
+
+      document.getElementById('btnLayerEsri').classList.remove('active');
+      document.getElementById('btnLayerGoogle').classList.remove('active');
+      document.getElementById('btnLayerStreet').classList.remove('active');
+
+      if (mode === 'google') {
+        googleHybridLayer.addTo(map);
+        document.getElementById('btnLayerGoogle').classList.add('active');
+      } else if (mode === 'street') {
+        streetLayerGroup.addTo(map);
+        document.getElementById('btnLayerStreet').classList.add('active');
+      } else {
+        esriHybridGroup.addTo(map);
+        document.getElementById('btnLayerEsri').classList.add('active');
+      }
+      map.invalidateSize();
+    }
+
+    function initOfflineCanvasGrid(container) {
+      document.getElementById('mapEngineBadge').textContent = 'Offline Blueprint Grid Active';
+      container.innerHTML = `
+        <div style="width:100%;height:100%;background:#0f172a;background-image:linear-gradient(#1e293b 1px, transparent 1px),linear-gradient(90deg, #1e293b 1px, transparent 1px);background-size:24px 24px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#e2e8f0;padding:1rem;text-align:center;">
+          <p style="font-weight:700;color:#38bdf8;margin-bottom:0.4rem;">Offline Roof Measurement Grid Active</p>
+          <p style="font-size:0.8rem;max-width:420px;">Your laptop is currently offline. Connect to Wi-Fi and refresh for live satellite photos, or use the Roof Area box below!</p>
+        </div>
+      `;
+    }
+
+    function updateCoordinateInputs(lat, lng) {
+      document.getElementById('latInput').value = Number(lat).toFixed(5);
+      document.getElementById('lngInput').value = Number(lng).toFixed(5);
+    }
+
+    /********************************************************************
+     * 3. ENTER COORDINATES FEATURE (LATITUDE & LONGITUDE JUMP)
+     ********************************************************************/
+    function goToEnteredCoordinates() {
+      if (!map) return;
+      let latRaw = document.getElementById('latInput').value.trim();
+      let lngRaw = document.getElementById('lngInput').value.trim();
+
+      if (latRaw.includes(',')) {
+        const parts = latRaw.split(',');
+        latRaw = parts[0].trim();
+        lngRaw = (parts[1] || '').trim();
+        document.getElementById('latInput').value = latRaw;
+        document.getElementById('lngInput').value = lngRaw;
+      }
+
+      const lat = parseFloat(latRaw);
+      const lng = parseFloat(lngRaw);
+
+      if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        showStatus('Please enter valid coordinates: Latitude between -90 and 90, Longitude between -180 and 180.', 'error');
+        return;
+      }
+
+      map.invalidateSize();
+      map.setView([lat, lng], 19);
+      placeLocationPin(lat, lng, `Selected Coordinates (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
+      showStatus(`Moved map to coordinates: ${lat.toFixed(5)}, ${lng.toFixed(5)}. Click or drag roof corners!`, 'info');
+    }
+
+    function placeLocationPin(lat, lng, labelText) {
+      if (!map) return;
+      if (gpsMarker) {
+        map.removeLayer(gpsMarker);
+      }
+      gpsMarker = L.marker([lat, lng])
+        .addTo(map)
+        .bindPopup(`<strong>${labelText}</strong><br/>Click or drag numbered corners to measure roof area.`)
+        .openPopup();
+    }
+
+    /********************************************************************
+     * 4. MULTI-STAGE GPS LOCATOR (BROWSER GPS + AUTO IP FALLBACK)
+     ********************************************************************/
+    async function locateUserWithFallback() {
+      const gpsBtn = document.getElementById('gpsLocateBtn');
+      const originalText = gpsBtn.textContent;
+      gpsBtn.textContent = '⏳ Locating...';
+      gpsBtn.disabled = true;
+
+      const onLocationSuccess = (lat, lng, sourceLabel) => {
+        updateCoordinateInputs(lat, lng);
+        if (map) {
+          map.invalidateSize();
+          map.setView([lat, lng], 19);
+          placeLocationPin(lat, lng, sourceLabel);
+        }
+        gpsBtn.textContent = originalText;
+        gpsBtn.disabled = false;
+        showStatus(`${sourceLabel}: (${lat.toFixed(5)}, ${lng.toFixed(5)}). Zoom onto your roof and click or drag its corners!`, 'info');
+      };
+
+      const fallbackToIpLocation = async () => {
+        try {
+          const res = await fetch('https://get.geojs.io/v1/ip/geo.json');
+          const data = await res.json();
+          if (data && data.latitude && data.longitude) {
+            const lat = parseFloat(data.latitude);
+            const lng = parseFloat(data.longitude);
+            const city = data.city ? ` (${data.city})` : '';
+            onLocationSuccess(lat, lng, `Network Location Found${city}`);
+            return;
+          }
+        } catch (e) {}
+
+        try {
+          const res2 = await fetch('https://ipapi.co/json/');
+          const data2 = await res2.json();
+          if (data2 && data2.latitude && data2.longitude) {
+            const lat = parseFloat(data2.latitude);
+            const lng = parseFloat(data2.longitude);
+            const city = data2.city ? ` (${data2.city})` : '';
+            onLocationSuccess(lat, lng, `Network Location Found${city}`);
+            return;
+          }
+        } catch (e2) {}
+
+        gpsBtn.textContent = originalText;
+        gpsBtn.disabled = false;
+        showStatus('Could not auto-detect GPS. Enter your Latitude & Longitude in the LAT / LNG boxes below.', 'error');
+      };
+
+      if (!navigator.geolocation) {
+        await fallbackToIpLocation();
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          onLocationSuccess(pos.coords.latitude, pos.coords.longitude, 'Exact Device GPS Location');
+        },
+        () => {
+          navigator.geolocation.getCurrentPosition(
+            posLow => {
+              onLocationSuccess(posLow.coords.latitude, posLow.coords.longitude, 'Device Wi-Fi Location');
+            },
+            () => {
+              fallbackToIpLocation();
+            },
+            { enableHighAccuracy: false, timeout: 3500, maximumAge: 60000 }
+          );
+        },
+        { enableHighAccuracy: true, timeout: 4500, maximumAge: 0 }
+      );
+    }
+
+    /********************************************************************
+     * 5. DRAGGABLE NUMBERED ROOF CORNERS & LIVE AREA CALCULATION
+     ********************************************************************/
+    function createCornerNumberIcon(number) {
+      return L.divIcon({
+        className: 'roof-corner-icon',
+        html: `<div class="roof-corner-badge" title="Drag Corner #${number} to resize roof">${number}</div>`,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      });
+    }
+
+    function addRoofCorner(latlng) {
+      if (!map) return;
+      const pointIndex = roofPoints.length;
+      roofPoints.push(latlng);
+
+      // Create a DRAGGABLE numbered marker so the user can reshape the roof anytime
+      const marker = L.marker(latlng, {
+        draggable: true,
+        icon: createCornerNumberIcon(pointIndex + 1)
+      }).addTo(map);
+
+      // Live update when user drags this corner point on the map
+      marker.on('drag', function (event) {
+        const currentIdx = roofMarkers.indexOf(marker);
+        if (currentIdx !== -1) {
+          const newPos = event.target.getLatLng();
+          roofPoints[currentIdx] = newPos;
+          updateCoordinateInputs(newPos.lat, newPos.lng);
+          redrawRoofPolygon();
+        }
+      });
+
+      roofMarkers.push(marker);
+      redrawRoofPolygon();
+    }
+
+    function refreshMarkerNumbers() {
+      roofMarkers.forEach((m, idx) => {
+        m.setIcon(createCornerNumberIcon(idx + 1));
+      });
+    }
+
+    function drawSampleRoofOnMap(silent = false) {
+      if (!map) return;
+      clearRoofTrace();
+      const center = map.getCenter();
+      const dLat = 0.000052;
+      const dLng = 0.000058;
+      const sampleCorners = [
+        L.latLng(center.lat + dLat, center.lng - dLng),
+        L.latLng(center.lat + dLat, center.lng + dLng),
+        L.latLng(center.lat - dLat, center.lng + dLng),
+        L.latLng(center.lat - dLat, center.lng - dLng)
+      ];
+      sampleCorners.forEach(pt => addRoofCorner(pt));
+      if (!silent) {
+        showStatus('Sample roof drawn! Drag any numbered corner (1, 2, 3, 4) to change the roof area live.', 'info');
+      }
+    }
+
+    function clearRoofTrace() {
+      if (!map) return;
+      roofPoints = [];
+      roofMarkers.forEach(m => map.removeLayer(m));
+      roofMarkers = [];
+      if (roofPolygon) map.removeLayer(roofPolygon);
+      roofPolygon = null;
+      document.getElementById('mapPolygonStatus').textContent = 'Roof trace cleared. Click 3 or more corners on the map to trace a roof.';
+    }
+
+    function redrawRoofPolygon() {
+      if (!map) return;
+      if (roofPolygon) {
+        map.removeLayer(roofPolygon);
+      }
+
+      const statusEl = document.getElementById('mapPolygonStatus');
+
+      if (roofPoints.length === 0) {
+        statusEl.textContent = 'Click corners on the map to trace a roof.';
+        return;
+      }
+
+      if (roofPoints.length < 3) {
+        roofPolygon = L.polyline(roofPoints, { color: '#38bdf8', weight: 3, dashArray: '5, 5' }).addTo(map);
+        statusEl.textContent = `${roofPoints.length} corner(s) placed. Click ${3 - roofPoints.length} more corner(s) to close roof shape.`;
+        return;
+      }
+
+      roofPolygon = L.polygon(roofPoints, {
+        color: '#0284c7',
+        fillColor: '#38bdf8',
+        fillOpacity: 0.38,
+        weight: 3
+      }).addTo(map);
+
+      const areaSqMeters = Math.round(calculateGeodesicArea(roofPoints));
+      if (areaSqMeters > 0) {
+        statusEl.textContent = `Traced Roof Area: ${areaSqMeters.toLocaleString('en-IN')} m² (${Math.round(areaSqMeters * 10.7639).toLocaleString('en-IN')} sq. ft.) — Drag points 1-${roofPoints.length} to resize!`;
+        setRoofAreaFromMap(areaSqMeters);
+      }
+    }
+
+    function calculateGeodesicArea(latLngs) {
+      const R = 6378137;
+      let area = 0;
+      const len = latLngs.length;
+      if (len < 3) return 0;
+
+      for (let i = 0; i < len; i++) {
+        const p1 = latLngs[i];
+        const p2 = latLngs[(i + 1) % len];
+        const x1 = (p1.lng * Math.PI) / 180;
+        const y1 = (p1.lat * Math.PI) / 180;
+        const x2 = (p2.lng * Math.PI) / 180;
+        const y2 = (p2.lat * Math.PI) / 180;
+        area += (x2 - x1) * (2 + Math.sin(y1) + Math.sin(y2));
+      }
+      area = (Math.abs(area) * R * R) / 2.0;
+      return area;
+    }
+
+    function setRoofAreaFromMap(areaSqMeters) {
+      const unitSelect = document.getElementById('areaUnitSelect');
+      const areaInput = document.getElementById('roofAreaInput');
+
+      if (unitSelect.value === 'sqft') {
+        areaInput.value = Math.round(areaSqMeters * 10.7639);
+      } else {
+        areaInput.value = areaSqMeters;
+      }
+      calculateHarvest();
+    }
+
+    /********************************************************************
+     * 6. SEARCH LOCATION & LIVE OPEN-METEO RAINFALL API
+     ********************************************************************/
+    async function searchLocationOnMap() {
+      const query = document.getElementById('locationSearchInput').value.trim();
+      if (!query) {
+        showStatus('Please enter a city, locality, or "Lat, Lng" coordinates to search.', 'error');
+        return;
+      }
+
+      const coordMatch = query.match(/^(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)$/);
+      if (coordMatch) {
+        document.getElementById('latInput').value = coordMatch[1];
+        document.getElementById('lngInput').value = coordMatch[3];
+        goToEnteredCoordinates();
+        return;
+      }
+
+      const searchBtn = document.getElementById('searchMapBtn');
+      searchBtn.textContent = 'Searching...';
+      searchBtn.disabled = true;
+
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
+        const response = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+        const data = await response.json();
+
+        if (!data || data.length === 0) {
+          showStatus(`No map location found for "${query}". Try entering Latitude & Longitude coordinates below.`, 'error');
+        } else {
+          const lat = parseFloat(data[0].lat);
+          const lon = parseFloat(data[0].lon);
+          updateCoordinateInputs(lat, lon);
+          if (map) {
+            map.invalidateSize();
+            map.setView([lat, lon], 19);
+            placeLocationPin(lat, lon, data[0].display_name.split(',')[0]);
+          }
+          showStatus(`Moved to: ${data[0].display_name}. Click or drag corners on your roof!`, 'info');
+        }
+      } catch (err) {
+        showStatus('Search service busy. Enter Latitude & Longitude directly in the LAT / LNG boxes.', 'error');
+      } finally {
+        searchBtn.textContent = '🔍 Search';
+        searchBtn.disabled = false;
+      }
+    }
+
+    async function fetchLiveRainfallForMapCenter() {
+      const lat = parseFloat(document.getElementById('latInput').value) || 13.6288;
+      const lng = parseFloat(document.getElementById('lngInput').value) || 79.4192;
+      const btn = document.getElementById('fetchLiveRainBtn');
+      const originalText = btn.textContent;
+      btn.textContent = 'Fetching climate data...';
+
+      try {
+        const apiUrl = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat.toFixed(4)}&longitude=${lng.toFixed(4)}&start_date=2025-01-01&end_date=2025-12-31&daily=precipitation_sum&timezone=auto`;
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+
+        if (data && data.daily && data.daily.precipitation_sum) {
+          let totalMm = 0;
+          let rainyDays = 0;
+          data.daily.precipitation_sum.forEach(val => {
+            if (val !== null && val > 0) {
+              totalMm += val;
+              if (val >= 2.5) rainyDays++;
+            }
+          });
+
+          totalMm = Math.round(totalMm);
+          currentRainyDays = Math.max(15, rainyDays);
+
+          document.getElementById('citySelect').value = 'custom';
+          document.getElementById('rainfallInput').value = totalMm;
+          document.getElementById('rainyDaysHint').textContent = `~${currentRainyDays} rainy days/yr (Live GPS)`;
+
+          calculateHarvest();
+          showStatus(`Updated rainfall to ${totalMm} mm/yr (${currentRainyDays} rainy days) for coordinates (${lat.toFixed(4)}, ${lng.toFixed(4)}).`, 'info');
+        }
+      } catch (error) {
+        showStatus('Could not fetch live Open-Meteo rainfall. Using selected city preset instead.', 'error');
+      } finally {
+        btn.textContent = originalText;
+      }
+    }
+
+    /********************************************************************
+     * 7. CORE CGWB RAINWATER HARVESTING & SIMPLIFIED RECHARGE ENGINE
+     ********************************************************************/
+    function calculateHarvest() {
+      const rawArea = parseFloat(document.getElementById('roofAreaInput').value) || 0;
+      const unit = document.getElementById('areaUnitSelect').value;
+      const runoffCoeff = parseFloat(document.getElementById('roofTypeSelect').value) || 0.70;
+      const annualRainfallMm = parseFloat(document.getElementById('rainfallInput').value) || 0;
+      const filterEffPercent = parseFloat(document.getElementById('filterEfficiencyInput').value) || 90;
+      const occupants = parseInt(document.getElementById('occupantsInput').value, 10) || 1;
+      const tankerPrice = parseFloat(document.getElementById('tankerCostInput').value) || 900;
+      const soilType = document.getElementById('soilTypeSelect').value;
+
+      const areaSqM = unit === 'sqft' ? rawArea / 10.7639 : rawArea;
+      const areaSqFt = unit === 'sqft' ? rawArea : rawArea * 10.7639;
+
+      document.getElementById('convertedAreaHint').textContent =
+        unit === 'sqm'
+          ? `≈ ${Math.round(areaSqFt).toLocaleString('en-IN')} sq. ft.`
+          : `≈ ${Math.round(areaSqM).toLocaleString('en-IN')} m²`;
+
+      document.getElementById('activeRoofBadge').textContent = `${Math.round(areaSqM).toLocaleString('en-IN')} m² Roof`;
+
+      if (areaSqM <= 0 || annualRainfallMm <= 0) {
+        return;
+      }
+
+      const grossLitres = areaSqM * annualRainfallMm;
+      const runoffAfterSurface = grossLitres * runoffCoeff;
+      const surfaceLoss = grossLitres - runoffAfterSurface;
+
+      const firstFlushDepthMm = Math.min(annualRainfallMm * 0.08, currentRainyDays * 1.5);
+      const firstFlushLoss = areaSqM * firstFlushDepthMm * runoffCoeff;
+
+      const waterEnteringFilter = Math.max(0, runoffAfterSurface - firstFlushLoss);
+      const netCollectableLitres = waterEnteringFilter * (filterEffPercent / 100);
+      const filterLoss = waterEnteringFilter - netCollectableLitres;
+
+      const tankersSaved = netCollectableLitres / 5000;
+      const annualRupeesSaved = Math.round(tankersSaved * tankerPrice);
+
+      // Uncapped Household Water Days Met (Can increase above 365 days freely!)
+      const dailyNonPotableDemand = occupants * 80;
+      const daysSupported = Math.round(netCollectableLitres / dailyNonPotableDemand);
+
+      const peakStormLitres = areaSqM * 50 * runoffCoeff * (filterEffPercent / 100);
+
+      document.getElementById('netWaterOutput').textContent = `${Math.round(netCollectableLitres).toLocaleString('en-IN')} L`;
+      document.getElementById('netCubicMeters').textContent = `${(netCollectableLitres / 1000).toFixed(1)} Cubic Meters (m³) / Year`;
+      document.getElementById('tankersSavedOutput').textContent = `${tankersSaved.toFixed(1)} Tankers`;
+      document.getElementById('annualMoneySavedOutput').textContent = `Est. Savings: ₹${annualRupeesSaved.toLocaleString('en-IN')} / yr`;
+      document.getElementById('daysSupportedOutput').textContent = `${daysSupported.toLocaleString('en-IN')} Days`;
+
+      if (daysSupported > 365) {
+        const yearsSupported = (daysSupported / 365).toFixed(1);
+        document.getElementById('dailyDemandSub').textContent = `At ${dailyNonPotableDemand.toLocaleString('en-IN')} L/day (~${yearsSupported} Years supply + groundwater surplus)`;
+      } else {
+        document.getElementById('dailyDemandSub').textContent = `At ${dailyNonPotableDemand.toLocaleString('en-IN')} L/day daily non-drinking use`;
+      }
+
+      document.getElementById('peakStormOutput').textContent = `${Math.round(peakStormLitres).toLocaleString('en-IN')} L`;
+
+      document.getElementById('grossRainVal').textContent = `${Math.round(grossLitres).toLocaleString('en-IN')} L`;
+      document.getElementById('runoffLossLabel').textContent = `2. Roof Absorption & Evaporation Loss (C = ${runoffCoeff.toFixed(2)})`;
+      document.getElementById('runoffLossVal').textContent = `− ${Math.round(surfaceLoss).toLocaleString('en-IN')} L`;
+      document.getElementById('firstFlushLossVal').textContent = `− ${Math.round(firstFlushLoss).toLocaleString('en-IN')} L`;
+      document.getElementById('filterLossLabel').textContent = `4. Filter Loss (${100 - filterEffPercent}%)`;
+      document.getElementById('filterLossVal').textContent = `− ${Math.round(filterLoss).toLocaleString('en-IN')} L`;
+      document.getElementById('finalNetVal').textContent = `${Math.round(netCollectableLitres).toLocaleString('en-IN')} L / year`;
+
+      updateSimpleRechargeSetup(areaSqM, peakStormLitres, soilType, annualRupeesSaved);
+      renderMonthlyChart(netCollectableLitres);
+    }
+
+    function updateSimpleRechargeSetup(areaSqM, peakStormLitres, soilType, annualRupeesSaved) {
+      const soilFactor = soilType === 'sandy' ? 0.85 : soilType === 'loamy' ? 1.0 : 1.25;
+      const requiredPitVolumeM3 = Math.max(2.5, (peakStormLitres / 1000) * 0.55 * soilFactor);
+
+      const badgeEl = document.getElementById('setupCategoryBadge');
+      const titleEl = document.getElementById('structureTitle');
+      const dimEl = document.getElementById('structureDimensions');
+      const capBadgeEl = document.getElementById('pitCapacityBadge');
+      const pipeEl = document.getElementById('pipeFilterSpecs');
+      const costEl = document.getElementById('costRangeOutput');
+      const paybackEl = document.getElementById('paybackOutput');
+
+      let minCost = 16000;
+      let maxCost = 22000;
+
+      if (areaSqM <= 120) {
+        badgeEl.textContent = 'Small Home Recharge Pit';
+        titleEl.textContent = '1. Pit Size to Dig (Small Home Pit)';
+        const depthM = Math.min(2.4, Math.max(1.8, (requiredPitVolumeM3 / (1.2 * 1.2)).toFixed(1)));
+        const depthFt = (depthM * 3.28084).toFixed(1);
+        const volLitres = Math.round(1.2 * 1.2 * depthM * 1000);
+        dimEl.textContent = `Dig a pit 1.2 m Long × 1.2 m Wide × ${depthM} m Deep (approx. 4 ft × 4 ft × ${depthFt} ft).`;
+        capBadgeEl.textContent = `Pit Volume: ~${volLitres.toLocaleString('en-IN')} Liters`;
+        pipeEl.textContent = 'Connect your roof drainpipe (3-inch or 4-inch PVC) through a simple leaf-mesh strainer into the pit. Optional: Keep a 1,500 L drum for garden water.';
+        minCost = 14000;
+        maxCost = 19000;
+      } else if (areaSqM <= 300) {
+        badgeEl.textContent = 'Medium Home Recharge Pit';
+        titleEl.textContent = '1. Pit Size to Dig (Standard Home Pit)';
+        const depthM = Math.min(3.0, Math.max(2.0, (requiredPitVolumeM3 / (1.5 * 1.5)).toFixed(1)));
+        const depthFt = (depthM * 3.28084).toFixed(1);
+        const volLitres = Math.round(1.5 * 1.5 * depthM * 1000);
+        dimEl.textContent = `Dig a pit 1.5 m Long × 1.5 m Wide × ${depthM} m Deep (approx. 5 ft × 5 ft × ${depthFt} ft).`;
+        capBadgeEl.textContent = `Pit Volume: ~${volLitres.toLocaleString('en-IN')} Liters`;
+        pipeEl.textContent = 'Connect your roof drainpipe (4-inch PVC) through a leaf-mesh filter straight into the top of the pit. Optional: Add a 3,000 L tank for cleaning/flushing.';
+        minCost = 18000;
+        maxCost = 26000;
+      } else {
+        badgeEl.textContent = 'Large Building / Campus Trench';
+        titleEl.textContent = '1. Trench Size to Dig (Apartment / Campus)';
+        const lengthM = Math.min(10.0, Math.max(3.5, (requiredPitVolumeM3 / (1.5 * 2.0)).toFixed(1)));
+        const lengthFt = (lengthM * 3.28084).toFixed(0);
+        const volLitres = Math.round(lengthM * 1.5 * 2.0 * 1000);
+        dimEl.textContent = `Dig a rectangular trench ${lengthM} m Long × 1.5 m Wide × 2.0 m Deep (approx. ${lengthFt} ft × 5 ft × 6.5 ft).`;
+        capBadgeEl.textContent = `Trench Volume: ~${volLitres.toLocaleString('en-IN')} Liters`;
+        pipeEl.textContent = 'Connect building roof pipes (6-inch PVC) through a settling chamber into the recharge trench. Recommended: 10,000 L storage sump.';
+        minCost = 42000;
+        maxCost = 65000;
+      }
+
+      costEl.textContent = `3. Estimated Setup Cost: ₹${minCost.toLocaleString('en-IN')} – ₹${maxCost.toLocaleString('en-IN')}`;
+      const avgCost = (minCost + maxCost) / 2;
+      if (annualRupeesSaved > 0) {
+        const paybackYears = (avgCost / annualRupeesSaved).toFixed(1);
+        paybackEl.textContent = `Recovers its cost in ~${paybackYears} Years of water tanker savings and keeps your borewell recharged in summer.`;
+      } else {
+        paybackEl.textContent = 'Prevents borewell drying in summer and stops rainwater from flooding the street.';
+      }
+    }
+
+    function renderMonthlyChart(netAnnualLitres) {
+      const chartEl = document.getElementById('monthlyChart');
+      chartEl.innerHTML = '';
+
+      const monthlyValues = MONTHLY_WEIGHTS.map(w => Math.round(netAnnualLitres * w));
+      const maxVal = Math.max(...monthlyValues, 1);
+
+      monthlyValues.forEach((val, idx) => {
+        const heightPct = Math.max(4, Math.round((val / maxVal) * 100));
+        const col = document.createElement('div');
+        col.className = 'bar-col';
+
+        const shortVal = val >= 1000 ? `${(val / 1000).toFixed(1)}k` : val;
+
+        col.innerHTML = `
+          <div class="bar-val">${shortVal}</div>
+          <div class="bar-fill" style="height: ${heightPct}%;" title="${MONTH_NAMES[idx]}: ${val.toLocaleString('en-IN')} Liters"></div>
+          <div class="bar-label">${MONTH_NAMES[idx]}</div>
+        `;
+        chartEl.appendChild(col);
+      });
+    }
+
+    /********************************************************************
+     * 8. UI HELPERS & EVENT LISTENERS
+     ********************************************************************/
+    function showStatus(msg, type) {
+      const el = document.getElementById('statusMessage');
+      el.textContent = msg;
+      el.className = type === 'error' ? 'status-error' : 'status-info';
+      el.style.display = 'block';
+      setTimeout(() => {
+        el.style.display = 'none';
+      }, 7000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initMap();
+      calculateHarvest();
+
+      // Map Layer switcher buttons
+      document.getElementById('btnLayerEsri').addEventListener('click', () => switchMapLayer('esri'));
+      document.getElementById('btnLayerGoogle').addEventListener('click', () => switchMapLayer('google'));
+      document.getElementById('btnLayerStreet').addEventListener('click', () => switchMapLayer('street'));
+
+      // Form input listeners
+      const formInputs = ['roofAreaInput', 'areaUnitSelect', 'roofTypeSelect', 'rainfallInput', 'soilTypeSelect', 'filterEfficiencyInput', 'occupantsInput', 'tankerCostInput'];
+      formInputs.forEach(id => {
+        document.getElementById(id).addEventListener('input', calculateHarvest);
+        document.getElementById(id).addEventListener('change', calculateHarvest);
+      });
+
+      // City preset change
+      document.getElementById('citySelect').addEventListener('change', function () {
+        const selectedOption = this.options[this.selectedIndex];
+        if (this.value !== 'custom') {
+          document.getElementById('rainfallInput').value = this.value;
+          currentRainyDays = parseInt(selectedOption.getAttribute('data-days'), 10) || 48;
+          document.getElementById('rainyDaysHint').textContent = `~${currentRainyDays} rainy days/yr`;
+
+          const lat = parseFloat(selectedOption.getAttribute('data-lat'));
+          const lng = parseFloat(selectedOption.getAttribute('data-lng'));
+          if (!isNaN(lat) && !isNaN(lng)) {
+            updateCoordinateInputs(lat, lng);
+            if (map) {
+              map.invalidateSize();
+              map.setView([lat, lng], 18);
+            }
+          }
+          calculateHarvest();
+        }
+      });
+
+      // Quick roof area preset pills
+      document.querySelectorAll('.pill-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const sqm = parseFloat(btn.getAttribute('data-sqm'));
+          document.getElementById('areaUnitSelect').value = 'sqm';
+          document.getElementById('roofAreaInput').value = sqm;
+          calculateHarvest();
+        });
+      });
+
+      // Map toolbar buttons
+      document.getElementById('drawSampleRoofBtn').addEventListener('click', () => drawSampleRoofOnMap(false));
+
+      document.getElementById('undoPointBtn').addEventListener('click', () => {
+        if (roofPoints.length > 0) {
+          roofPoints.pop();
+          const lastMarker = roofMarkers.pop();
+          if (lastMarker && map) map.removeLayer(lastMarker);
+          refreshMarkerNumbers();
+          redrawRoofPolygon();
+        }
+      });
+
+      document.getElementById('clearPolygonBtn').addEventListener('click', clearRoofTrace);
+
+      // Search, Coordinates & Multi-Stage GPS buttons
+      document.getElementById('searchMapBtn').addEventListener('click', searchLocationOnMap);
+      document.getElementById('locationSearchInput').addEventListener('keypress', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          searchLocationOnMap();
+        }
+      });
+
+      document.getElementById('goToCoordBtn').addEventListener('click', goToEnteredCoordinates);
+      ['latInput', 'lngInput'].forEach(id => {
+        document.getElementById(id).addEventListener('keypress', e => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            goToEnteredCoordinates();
+          }
+        });
+      });
+
+      document.getElementById('gpsLocateBtn').addEventListener('click', locateUserWithFallback);
+      document.getElementById('fetchLiveRainBtn').addEventListener('click', fetchLiveRainfallForMapCenter);
+
+      // Demo Sample Buttons for Hackathon Presentation
+      document.getElementById('demoHouseBtn').addEventListener('click', () => {
+        document.getElementById('areaUnitSelect').value = 'sqm';
+        document.getElementById('roofAreaInput').value = 140;
+        document.getElementById('roofTypeSelect').value = '0.70';
+        document.getElementById('citySelect').value = '934';
+        document.getElementById('rainfallInput').value = 934;
+        document.getElementById('soilTypeSelect').value = 'loamy';
+        document.getElementById('occupantsInput').value = 5;
+        updateCoordinateInputs(13.6288, 79.4192);
+        if (map) {
+          map.invalidateSize();
+          map.setView([13.6288, 79.4192], 18);
+          drawSampleRoofOnMap(true);
+        }
+        calculateHarvest();
+        showStatus('Loaded Sample 1: Family Home (140 m² Roof in Tirupati) with draggable roof corners.', 'info');
+      });
+
+      document.getElementById('demoCampusBtn').addEventListener('click', () => {
+        document.getElementById('areaUnitSelect').value = 'sqm';
+        document.getElementById('roofAreaInput').value = 850;
+        document.getElementById('roofTypeSelect').value = '0.70';
+        document.getElementById('citySelect').value = '1400';
+        document.getElementById('rainfallInput').value = 1400;
+        document.getElementById('soilTypeSelect').value = 'sandy';
+        document.getElementById('occupantsInput').value = 15;
+        updateCoordinateInputs(13.0827, 80.2707);
+        if (map) {
+          map.invalidateSize();
+          map.setView([13.0827, 80.2707], 18);
+        }
+        calculateHarvest();
+        showStatus('Loaded Sample 2: Large Campus Block (850 m² Roof in Chennai) — notice Days Met goes past 365 days!', 'info');
+      });
+    });
+  </script>
+</body>
+</html>
